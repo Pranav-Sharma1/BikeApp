@@ -1,7 +1,8 @@
-import { View, Text, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ActivityIndicator, Alert, TextInput, Button } from "react-native";
 import React, { useState, useEffect } from "react";
 import { ExpoLeaflet, MapLayer, MapMarker, LeafletWebViewEvent } from "expo-leaflet";
 import * as Location from "expo-location";
+import axios from "axios";
 
 const mapLayer: MapLayer = {
   baseLayerName: "CyclOSM",
@@ -18,10 +19,12 @@ const pinIcon = `
   </svg>
 `;
 
-export default function MyMap() {
+export default function MyMap2() {
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     getLocation();
@@ -54,33 +57,23 @@ export default function MyMap() {
         icon: pinIcon,
         size: [24, 24],
       };
-
-      // Add the new marker
       setMarkers([...markers, newMarker]);
-
-      // If there are at least two markers, create a route between the first two markers
-      if (markers.length === 1) {
-        createRoute([markers[0], newMarker]);
-      }
-
-      // If there are more than two markers, create a route between the last two markers
-      if (markers.length >= 2) {
-        createRoute(markers.slice(-2));
-      }
     }
   };
 
-  const createRoute = (selectedMarkers: MapMarker[]) => {
-    const [startMarker, endMarker] = selectedMarkers;
-    const startLocation = startMarker.position;
-    const endLocation = endMarker.position;
-
-    // Logic to create route goes here
-    // For demonstration purposes, let's just show an alert
-    Alert.alert(
-      "Route created",
-      `You have selected two points: Start (${startLocation.lat}, ${startLocation.lng}) and End (${endLocation.lat}, ${endLocation.lng})`
-    );
+  const searchLocation = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${searchQuery}&key=YOUR_API_KEY&types=geocode`
+      );
+      setSearchResults(response.data.predictions);
+    } catch (error) {
+      console.error("Error fetching location:", error);
+      Alert.alert("Error", "An error occurred while fetching the location. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -91,15 +84,31 @@ export default function MyMap() {
           <Text>Accessing geolocation...</Text>
         </View>
       ) : (
-        <ExpoLeaflet
-          mapLayers={[mapLayer]}
-          mapMarkers={markers}
-          mapCenterPosition={userLocation || { lat: -25.35084, lng: -51.47921 }} // Use userLocation if available, otherwise default to a fixed location
-          maxZoom={20}
-          zoom={15}
-          loadingIndicator={() => <ActivityIndicator />}
-          onMessage={handleMapEvent}
-        />
+        <>
+          <View style={{ flexDirection: "row", paddingHorizontal: 10 }}>
+            <TextInput
+              style={{ flex: 1, height: 40, borderColor: "gray", borderWidth: 1, marginRight: 10 }}
+              placeholder="Enter address or location"
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+            />
+            <Button title="Search" onPress={searchLocation} />
+          </View>
+          <View>
+            {searchResults.map((result) => (
+              <Text key={result.place_id}>{result.description}</Text>
+            ))}
+          </View>
+          <ExpoLeaflet
+            mapLayers={[mapLayer]}
+            mapMarkers={markers}
+            mapCenterPosition={userLocation || { lat: -25.35084, lng: -51.47921 }} // Use userLocation if available, otherwise default to a fixed location
+            maxZoom={20}
+            zoom={15}
+            loadingIndicator={() => <ActivityIndicator />}
+            onMessage={handleMapEvent}
+          />
+        </>
       )}
     </View>
   );

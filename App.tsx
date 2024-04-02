@@ -8,7 +8,11 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <MyMap />
+      <MyMap>
+
+      </MyMap>
+      
+    
     </View>
   );
 }
@@ -19,6 +23,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 64,
+    marginTop: 63,
   },
 });
