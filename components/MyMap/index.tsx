@@ -4,13 +4,11 @@ import { ExpoLeaflet, MapLayer, MapMarker } from "expo-leaflet";
 
 // Map Layer is based on OpenStreetMap, https://www.openstreetmap.org/#map=17/-25.35051/-51.47748
 const mapLayer: MapLayer = {
-  baseLayerName: "OpenStreetMap",
+  baseLayerName: "CyclOSM",
   baseLayerIsChecked: true,
   layerType: "TileLayer",
   baseLayer: true,
-  url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  attribution:
-    "&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors",
+  url: "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
 };
 
 export default function MyMap() {
